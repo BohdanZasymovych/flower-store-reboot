@@ -13,8 +13,8 @@ permissions:
 
 jobs:
   test:
-    name: Run Maven Tests
     runs-on: ubuntu-latest
+
     services:
       postgres:
         image: postgres:15
@@ -22,20 +22,14 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: flowers
-        ports:
-          - 5432:5432
         options: >-
-          --health-cmd \"pg_isready -U postgres\"
+          --health-cmd "pg_isready -U postgres"
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
-          persist-credentials: false
+      - uses: actions/checkout@v3
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -44,27 +38,23 @@ jobs:
           distribution: 'temurin'
           cache: 'maven'
 
-      - name: Make mvnw executable (if using the wrapper)
+      - name: Make mvnw executable
         run: chmod +x ./mvnw
 
       - name: Wait for Postgres
         run: |
-          # Wait until Postgres is ready (timeout after 60s)
           for i in $(seq 1 60); do
-            if pg_isready -h localhost -p 5432 -U postgres >/dev/null 2>&1; then
+            if pg_isready -h postgres -p 5432 -U postgres >/dev/null 2>&1; then
               echo 'Postgres is ready'
               break
             fi
             echo 'Waiting for Postgres...'
             sleep 1
           done
-        # pg_isready is available in the runner's tools; if not, use a simple sleep as fallback
-      - name: Run tests
-        run: ./mvnw -B test
 
-      - name: Upload test reports
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: surefire-reports
-          path: target/surefire-reports
+      - name: Run tests
+        env:
+          SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/flowers
+          SPRING_DATASOURCE_USERNAME: postgres
+          SPRING_DATASOURCE_PASSWORD: postgres
+        run: ./mvnw -B test
