@@ -1,0 +1,30 @@
+# Flower endpoints
+###
+GET https://flower-store-reboot-zasymovych-c460b9dccb26.herokuapp.com/flowers
+
+
+###
+POST https://flower-store-reboot-zasymovych-c460b9dccb26.herokuapp.com/flowers
+Content-Type: application/json
+
+{
+  "id": 1,
+  "sepalLength": 100,
+  "color": "blue",
+  "price": 100
+}
+
+
+# AppUser endpoints
+###
+GET https://flower-store-reboot-zasymovych-c460b9dccb26.herokuapp.com/users
+
+###
+POST https://flower-store-reboot-zasymovych-c460b9dccb26.herokuapp.com/users
+Content-Type: application/json
+
+{
+  "id": 2,
+  "email": "user2@email.com",
+  "dob": "2001-09-11"
+}
