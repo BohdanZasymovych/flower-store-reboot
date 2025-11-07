@@ -46,21 +46,15 @@ jobs:
       - name: Install psql client
         run: sudo apt-get update && sudo apt-get install -y postgresql-client
 
-      - name: Wait for Postgres service to be healthy
+      - name: Debug service connectivity
         env:
           PGPASSWORD: postgres
         run: |
-          # The service health check should have gated execution,
-          # but do a quick sanity check that 'flowers' DB is accessible
-          for i in $(seq 1 10); do
-            echo "Sanity check attempt $i..."
-            if psql -h localhost -U postgres -d flowers -c "SELECT 1;" >/dev/null 2>&1; then
-              echo "Postgres is ready and 'flowers' DB is accessible"
-              exit 0
-            fi
-            sleep 1
-          done
-          echo "Warning: Postgres sanity check failed; proceeding anyway" >&2
+          echo "Checking if localhost:5432 is reachable..."
+          nc -zv localhost 5432 || echo "nc failed, trying psql..."
+          echo "Attempting psql connection..."
+          psql -h localhost -U postgres -d flowers -c "SELECT version();" || echo "psql failed"
+          echo "Debug complete"
 
       - name: Run tests
         env:
