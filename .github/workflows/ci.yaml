@@ -22,11 +22,9 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: flowers
-        options: >-
-          --health-cmd 'pg_isready -U postgres'
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
+        # no options here: avoid passing health-cmd which can be sensitive to
+        # quoting/CLI parsing on the runner and cause 'docker create' to fail.
+        # We'll wait for Postgres using a TCP check in the steps below.
 
     steps:
       - uses: actions/checkout@v3
@@ -41,11 +39,13 @@ jobs:
       - name: Make mvnw executable
         run: chmod +x ./mvnw
 
-      - name: Wait for Postgres
+      - name: Wait for Postgres (TCP check)
         run: |
+          # Wait up to 60s for Postgres to accept TCP connections on the service hostname.
+          # Use bash /dev/tcp to avoid depending on pg_isready being installed on the runner.
           for i in $(seq 1 60); do
-            if pg_isready -h postgres -p 5432 -U postgres >/dev/null 2>&1; then
-              echo 'Postgres is ready'
+            if (echo > /dev/tcp/postgres/5432) >/dev/null 2>&1; then
+              echo 'Postgres is accepting connections'
               break
             fi
             echo 'Waiting for Postgres...'
