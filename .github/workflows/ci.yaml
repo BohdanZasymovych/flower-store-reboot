@@ -39,18 +39,27 @@ jobs:
       - name: Make mvnw executable
         run: chmod +x ./mvnw
 
-      - name: Wait for Postgres (TCP check)
+      - name: Install psql client
+        run: sudo apt-get update && sudo apt-get install -y postgresql-client
+
+      - name: Wait for Postgres (psql check)
+        env:
+          PGPASSWORD: postgres
         run: |
-          # Wait up to 60s for Postgres to accept TCP connections on the service hostname.
-          # Use bash /dev/tcp to avoid depending on pg_isready being installed on the runner.
+          # Try connecting and running a simple query against the 'flowers' DB.
+          # This loop will try 60 times (approx 60s) before failing the job.
           for i in $(seq 1 60); do
-            if (echo > /dev/tcp/postgres/5432) >/dev/null 2>&1; then
-              echo 'Postgres is accepting connections'
+            echo "Trying psql connection attempt $i..."
+            if psql -h postgres -U postgres -d flowers -c "SELECT 1;" >/dev/null 2>&1; then
+              echo "Postgres is ready and 'flowers' DB is accessible"
               break
             fi
-            echo 'Waiting for Postgres...'
             sleep 1
           done
+          if ! psql -h postgres -U postgres -d flowers -c "SELECT 1;" >/dev/null 2>&1; then
+            echo "Postgres did not become ready in time" >&2
+            exit 1
+          fi
 
       - name: Run tests
         env:
@@ -58,3 +67,10 @@ jobs:
           SPRING_DATASOURCE_USERNAME: postgres
           SPRING_DATASOURCE_PASSWORD: postgres
         run: ./mvnw -B test
+
+      - name: Upload test reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: surefire-reports
+          path: target/surefire-reports
