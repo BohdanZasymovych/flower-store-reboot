@@ -20,7 +20,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 public class DeliveryController {
     private final Order order;
 
-    @Autowired
     public DeliveryController(Order order) {
         this.order = order;
     }

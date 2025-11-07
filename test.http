@@ -1,4 +1,7 @@
+# Flower endpoints
+###
 GET http://localhost:8080/flowers
+
 
 ###
 POST http://localhost:8080/flowers
@@ -9,4 +12,19 @@ Content-Type: application/json
   "sepalLength": 100,
   "color": "blue",
   "price": 100
+}
+
+
+# AppUser endpoints
+###
+GET http://localhost:8080/users
+
+###
+POST http://localhost:8080/users
+Content-Type: application/json
+
+{
+  "id": 2,
+  "email": "user2@email.com",
+  "dob": "2001-09-11"
 }

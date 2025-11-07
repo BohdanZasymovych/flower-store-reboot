@@ -13,6 +13,8 @@ public class RootController {
         return "<pre>" +
                "Available endpoints:\n" +
                "- GET  /flowers                         : List all flowers\n" +
+               "- GET  /users                           : List all users\n" +
+               "- POST  /users                          : Add new user\n" +
                "- GET  /order                           : View the current order\n" +
                "- GET/POST /order/{post|dhl}            : Set delivery method to 'post' or 'dhl'\n" +
                "- GET  /payment                         : View the current payment method\n" +
